@@ -1,0 +1,2 @@
+D:/Course/bookstore-main/android/app/.cxx/Debug/c4g3c2tk/x86/CMakeFiles/edit_cache.dir
+D:/Course/bookstore-main/android/app/.cxx/Debug/c4g3c2tk/x86/CMakeFiles/rebuild_cache.dir
