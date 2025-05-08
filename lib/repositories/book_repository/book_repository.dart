@@ -18,6 +18,7 @@ class BookRepository {
   static const double _defaultPrice = 0.0;
 
   Future<List<BookModel>> fetchBooks() async {
+    print('Fetching books from backend...');
     try {
       final response = await http.get(
         Uri.parse(_baseUrl),

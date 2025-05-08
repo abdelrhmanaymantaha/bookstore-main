@@ -20,6 +20,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:bookstore_app/view/admin/admin_screen.dart';
+import 'package:bookstore_app/view/orders/orders_screen.dart';
 part 'router_provider.g.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey =
@@ -60,7 +61,8 @@ GoRouter router(Ref ref) {
           state.matchedLocation == '/categories' ||
           state.matchedLocation == '/cart' ||
           state.matchedLocation == '/account' ||
-          state.matchedLocation == '/admin';
+          state.matchedLocation == '/admin' ||
+          state.matchedLocation == '/orders';
 
       if (!isLoggedIn && isGoingToProtectedRoute) {
         return state.namedLocation(RouterNames.welcome);
@@ -129,6 +131,11 @@ GoRouter router(Ref ref) {
                 builder: (context, state) => AccountScreen(
                   key: state.pageKey,
                 ),
+              ),
+              GoRoute(
+                name: RouterNames.orders,
+                path: '/orders',
+                builder: (context, state) => const OrdersScreen(),
               ),
             ],
           ),

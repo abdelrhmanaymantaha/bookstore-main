@@ -55,6 +55,11 @@ class CartViewModel extends _$CartViewModel {
     }
   }
 
+  void clearCart() {
+    _cartItems.clear();
+    state = List.from(_cartItems);
+  }
+
   double getTotalPrice() {
     return _cartItems.fold(
         0, (total, item) => total + (item.book.price * item.quantity));

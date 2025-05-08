@@ -608,8 +608,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   Future<void> _refreshHomeContent() async {
     try {
-      // Refresh all book lists
-      await ref.read(homeViewModelProvider.notifier).getAllBooks();
+      ref.invalidate(homeViewModelProvider);
+      await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) {
         setState(() {
           _hasError = false;

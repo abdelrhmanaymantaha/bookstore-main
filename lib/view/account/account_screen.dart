@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bookstore_app/core/router/router_names.dart';
 import 'package:bookstore_app/view/admin/admin_screen.dart';
+import 'package:bookstore_app/view/orders/orders_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -362,7 +363,12 @@ class _AccountScreenState extends State<AccountScreen> {
             title: 'My Orders',
             icon: Icons.shopping_bag,
             onTap: () {
-              // TODO: Navigate to orders
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OrdersScreen(),
+                ),
+              );
             },
           ),
         ],

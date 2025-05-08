@@ -14,5 +14,5 @@ class RouterNames {
   static const seeMore = 'see_more';
   static const categorySceen = 'category';
   static const admin = 'admin';
+  static const String orders = 'orders';
 }
-

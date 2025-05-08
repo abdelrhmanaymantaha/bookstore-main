@@ -8,9 +8,69 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bookstore_app/core/router/router_names.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
+
+  Future<void> _purchaseBooks(
+      BuildContext context, WidgetRef ref, List<CartItem> cartItems) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
+
+      final userEmail = user.email;
+      if (userEmail == null) {
+        throw Exception('User email not found');
+      }
+
+      // Make POST request for each book
+      for (var item in cartItems) {
+        final response = await http.post(
+          Uri.parse(
+              'https://book-app-backend-production-304e.up.railway.app/users/add/purchase'),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'email': userEmail,
+            'books_title': item.book.title,
+          }),
+        );
+
+        if (response.statusCode != 200) {
+          throw Exception('Failed to purchase book: ${item.book.title}');
+        }
+      }
+
+      // Clear the cart after successful purchase
+      ref.read(cartViewModelProvider.notifier).clearCart();
+
+      // Show success message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Purchase successful!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -128,7 +188,7 @@ class CartScreen extends ConsumerWidget {
                     ),
                     SizedBox(height: 40.h),
                     CustomButton(
-                      onPressed: () {},
+                      onPressed: () => _purchaseBooks(context, ref, cartItems),
                       title: 'Proceed to Checkout',
                       backgroundColor: AppColors.primaryColor,
                       foregroundColor: AppColors.secondaryColor,
