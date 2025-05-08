@@ -16,85 +16,122 @@ class BookVerticalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        context.pushNamed(
-          RouterNames.bookDetail,
-          extra: book,
-        );
-      },
-      child: Container(
+      onTap: () => context.pushNamed(RouterNames.bookDetail, extra: book),
+      child: SizedBox(
         height: 294.h,
         width: 180.w,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8).r,
-          color: AppColors.greyColor,
-        ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                height: 140.h,
-                width: 92.w,
-                padding: const EdgeInsets.only(top: 12).r,
-                child: Image.network(
-                  book.imageUrl,
-                  fit: BoxFit.cover,
+            // Image Section
+            Container(
+              height: 140.h,
+              width: 180.w,
+              decoration: BoxDecoration(
+                color: AppColors.greyColor,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(8.r)),
+              ),
+              child: Padding(
+                padding: EdgeInsets.only(top: 12.h),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Image.network(
+                    book.imageUrl,
+                    height: 128.h,
+                    width: 92.w,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Icon(Icons.book, size: 92.w),
+                  ),
                 ),
               ),
             ),
-            Container(
-              height: 154.h,
-              width: 180.w,
-              padding: const EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 12,
-              ).r,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(8),
-                  bottomRight: Radius.circular(8),
-                ).r,
-                color: AppColors.primaryColor,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    book.category,
-                    style: Theme.of(context).textTheme.displaySmall!.copyWith(
-                          color: AppColors.secondaryColor.withOpacity(0.6),
+
+            // Text Section
+            Expanded(
+              child: Container(
+                width: 180.w,
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor,
+                  borderRadius:
+                      BorderRadius.vertical(bottom: Radius.circular(8.r)),
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Category
+                              Text(
+                                book.category,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: AppColors.secondaryColor
+                                          .withOpacity(0.6),
+                                      fontSize: 10.sp,
+                                      height: 1.2,
+                                    ),
+                              ),
+                              SizedBox(height: 4.h),
+
+                              // Title
+                              Flexible(
+                                child: Text(
+                                  book.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        color: AppColors.secondaryColor,
+                                        fontSize: 14.sp,
+                                        height: 1.2,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                ),
+                              ),
+                              SizedBox(height: 4.h),
+
+                              // Author
+                              Text(
+                                book.author,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: AppColors.secondaryColor,
+                                      fontSize: 10.sp,
+                                    ),
+                              ),
+                            ],
+                          ),
                         ),
-                  ),
-                  Text(
-                    book.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                          color: AppColors.secondaryColor,
+
+                        // Price
+                        Text(
+                          '\$${book.price}',
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: AppColors.secondaryColor,
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
-                  ),
-                  SizedBox(
-                    height: 8.h,
-                  ),
-                  Text(
-                    book.author,
-                    style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                          color: AppColors.secondaryColor,
-                        ),
-                  ),
-                  SizedBox(
-                    height: 12.h,
-                  ),
-                  Text(
-                    '\$${book.price}',
-                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          color: AppColors.secondaryColor,
-                        ),
-                  ),
-                ],
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ],

@@ -5,6 +5,7 @@ import 'package:bookstore_app/view/home/widgets/book_vertical_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:bookstore_app/core/constants/app_colors.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({
@@ -148,43 +149,84 @@ class _CategoryScreenState extends State<CategoryScreen> {
         'Building CategoryScreen with ${_filteredBooks.length} filtered books');
 
     return Scaffold(
+      backgroundColor: AppColors.secondaryColor,
       appBar: AppBar(
+        backgroundColor: AppColors.secondaryColor,
+        elevation: 0,
         title: Text(
           widget.title,
-          style: Theme.of(context).textTheme.titleLarge,
+          style: TextStyle(
+            color: AppColors.primaryColor,
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.primaryColor),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(16.r),
+            padding: EdgeInsets.all(20.r),
             child: Column(
               children: [
                 // Search Bar
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search by title, author, or category...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              _filterBooks('');
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(vertical: 12.h),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  onChanged: (value) {
-                    debugPrint('Search text changed: $value');
-                    _filterBooks(value);
-                  },
-                  textInputAction: TextInputAction.search,
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search by title, author, or category...',
+                      hintStyle: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 14.sp,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: AppColors.primaryColor,
+                        size: 20.r,
+                      ),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.clear,
+                                color: Colors.grey[400],
+                                size: 20.r,
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                                _filterBooks('');
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 12.h,
+                      ),
+                    ),
+                    onChanged: (value) {
+                      debugPrint('Search text changed: $value');
+                      _filterBooks(value);
+                    },
+                    textInputAction: TextInputAction.search,
+                  ),
                 ),
                 SizedBox(height: 16.h),
                 // Sort Buttons
@@ -208,16 +250,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         CircularProgressIndicator(
-                          color: Theme.of(context).primaryColor,
+                          color: AppColors.primaryColor,
                           strokeWidth: 3,
                         ),
                         SizedBox(height: 16.h),
                         Text(
                           'Loading books...',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Colors.grey[600],
-                                  ),
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ],
                     ),
@@ -229,23 +271,27 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.book_outlined,
-                            size: 64.r, color: Colors.grey),
+                        Icon(
+                          Icons.book_outlined,
+                          size: 64.r,
+                          color: Colors.grey[400],
+                        ),
                         SizedBox(height: 16.h),
                         Text(
                           'No Books Available',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: Colors.grey[700],
-                                  ),
+                          style: TextStyle(
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700],
+                          ),
                         ),
                         SizedBox(height: 8.h),
                         Text(
                           'This category is empty',
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey[600],
-                                  ),
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ],
                     ),
@@ -257,87 +303,46 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.search_off, size: 64.r, color: Colors.grey),
+                        Icon(
+                          Icons.search_off,
+                          size: 64.r,
+                          color: Colors.grey[400],
+                        ),
                         SizedBox(height: 16.h),
                         Text(
-                          'No books found',
-                          style: Theme.of(context).textTheme.titleMedium,
+                          'No Results Found',
+                          style: TextStyle(
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700],
+                          ),
                         ),
                         SizedBox(height: 8.h),
                         Text(
                           'Try different search terms',
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ],
                     ),
                   );
                 }
 
-                try {
-                  return GridView.builder(
-                    padding: EdgeInsets.all(20).r,
-                    gridDelegate:
-                        SliverGridDelegateWithFixedCrossAxisCountAndFixedHeight(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8.h,
-                      crossAxisSpacing: 8.w,
-                      height: 294.h,
-                    ),
-                    itemCount: _filteredBooks.length,
-                    itemBuilder: (context, index) {
-                      final book = _filteredBooks[index];
-                      return BookVerticalCard(book: book);
-                    },
-                  );
-                } catch (e) {
-                  debugPrint('Error building book grid: $e');
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error_outline,
-                            color: Colors.red, size: 64.r),
-                        SizedBox(height: 16.h),
-                        Text(
-                          'Error displaying books',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: Colors.red,
-                                  ),
-                        ),
-                        SizedBox(height: 8.h),
-                        Text(
-                          'Please try again later',
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey[600],
-                                  ),
-                        ),
-                        SizedBox(height: 16.h),
-                        ElevatedButton(
-                          onPressed: _initializeBooks,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 24.w,
-                              vertical: 12.h,
-                            ),
-                          ),
-                          child: Text(
-                            'Retry',
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
+                return GridView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16.h,
+                    crossAxisSpacing: 16.w,
+                    childAspectRatio: 0.6,
+                  ),
+                  itemCount: _filteredBooks.length,
+                  itemBuilder: (context, index) {
+                    return BookVerticalCard(book: _filteredBooks[index]);
+                  },
+                );
               },
             ),
           ),
@@ -356,15 +361,21 @@ class _CategoryScreenState extends State<CategoryScreen> {
         });
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor:
-            isSelected ? Theme.of(context).primaryColor : Colors.grey[200],
+        backgroundColor: isSelected ? AppColors.primaryColor : Colors.white,
         foregroundColor: isSelected ? Colors.white : Colors.black87,
+        elevation: isSelected ? 2 : 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.r),
         ),
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       ),
-      child: Text(label),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 14.sp,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+        ),
+      ),
     );
   }
 }

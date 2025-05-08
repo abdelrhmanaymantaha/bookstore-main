@@ -426,8 +426,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             scrollDirection: Axis.horizontal,
             itemCount: books.length,
             itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.only(right: 16.w),
+              return Container(
+                width: 180.w,
+                margin: EdgeInsets.only(right: 16.w),
                 child: BookVerticalCard(
                   book: books[index],
                 ),

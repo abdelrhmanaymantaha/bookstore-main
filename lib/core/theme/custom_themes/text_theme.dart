@@ -10,44 +10,44 @@ class CTextTheme {
     headlineLarge: GoogleFonts.openSans().copyWith(
       fontSize: 24.sp,
       fontWeight: FontWeight.w600,
-      color: AppColors.primaryColor,
+      color: AppColors.textColor,
     ),
     headlineMedium: GoogleFonts.openSans().copyWith(
       fontSize: 22.sp,
       fontWeight: FontWeight.w600,
-      color: AppColors.primaryColor,
+      color: AppColors.textColor,
     ),
     titleLarge: GoogleFonts.openSans().copyWith(
       fontSize: 20.sp,
       fontWeight: FontWeight.w600,
-      color: AppColors.primaryColor,
+      color: AppColors.textColor,
     ),
     titleMedium: GoogleFonts.openSans().copyWith(
       fontSize: 16.sp,
       fontWeight: FontWeight.w600,
-      color: AppColors.primaryColor,
+      color: AppColors.textColor,
     ),
     titleSmall: GoogleFonts.openSans().copyWith(
       fontSize: 14.sp,
       fontWeight: FontWeight.w600,
-      color: AppColors.primaryColor,
+      color: AppColors.textColor,
     ),
     bodyMedium: GoogleFonts.openSans().copyWith(
       fontSize: 16.sp,
-      color: AppColors.primaryColor,
+      color: AppColors.textColor,
     ),
     bodySmall: GoogleFonts.openSans().copyWith(
       fontSize: 14.sp,
-      color: AppColors.primaryColor,
+      color: AppColors.textColor,
     ),
     displaySmall: GoogleFonts.openSans().copyWith(
       fontSize: 11.sp,
       fontWeight: FontWeight.w300,
-      color: AppColors.primaryColor,
+      color: AppColors.textColor,
     ),
     labelSmall: GoogleFonts.openSans().copyWith(
       fontSize: 11.sp,
-      color: AppColors.primaryColor,
+      color: AppColors.textColor,
     ),
   );
 }
