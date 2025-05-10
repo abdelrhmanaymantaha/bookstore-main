@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:developer' as developer;
+import '../../core/widgets/custom_snackbar.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -72,17 +73,26 @@ class _OrdersScreenState extends State<OrdersScreen> {
     } catch (e) {
       developer.log('Error loading orders: $e', error: e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading orders: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showMessage('Error loading orders: $e');
       }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    if (isError) {
+      CustomSnackBar.showError(
+        context: context,
+        message: message,
+      );
+    } else {
+      CustomSnackBar.showSuccess(
+        context: context,
+        message: message,
+      );
     }
   }
 

@@ -11,9 +11,25 @@ import 'package:bookstore_app/core/router/router_names.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../core/widgets/custom_snackbar.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
+
+  void _showMessage(BuildContext context, String message,
+      {bool isError = false}) {
+    if (isError) {
+      CustomSnackBar.showError(
+        context: context,
+        message: message,
+      );
+    } else {
+      CustomSnackBar.showSuccess(
+        context: context,
+        message: message,
+      );
+    }
+  }
 
   Future<void> _purchaseBooks(
       BuildContext context, WidgetRef ref, List<CartItem> cartItems) async {
@@ -52,22 +68,12 @@ class CartScreen extends ConsumerWidget {
 
       // Show success message
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Purchase successful!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        _showMessage(context, 'Purchase successful!');
       }
     } catch (e) {
       // Show error message
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showMessage(context, 'Error: ${e.toString()}', isError: true);
       }
     }
   }

@@ -7,6 +7,9 @@ import 'package:bookstore_app/view/admin/add_book_screen.dart';
 import 'package:bookstore_app/view_model/home_view_model/home_view_model.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:bookstore_app/core/widgets/custom_snackbar.dart';
 
 class AdminScreen extends ConsumerStatefulWidget {
   const AdminScreen({super.key});
@@ -33,28 +36,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
       setState(() => _books = books);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.error, color: Colors.white, size: 20.r),
-                SizedBox(width: 8.w),
-                Flexible(
-                  child: Text(
-                    'Error loading books: $e',
-                    style: TextStyle(fontSize: 14.sp),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.fixed,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
-            ),
-          ),
-        );
+        _showMessage('Error loading books: $e', isError: true);
       }
     } finally {
       if (mounted) {
@@ -520,21 +502,20 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
                 label: 'Edit Books',
                 onPressed: _showBookSelectionDialog,
               ),
-              SizedBox(height: 12.h),
-              _buildAdminButton(
-                icon: Icons.person,
-                label: 'Manage Users',
-                onPressed: () {
-                  // TODO: Implement user management
-                },
+              SizedBox(height: 24.h),
+              Text(
+                'Library Management',
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryColor,
+                ),
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: 16.h),
               _buildAdminButton(
-                icon: Icons.receipt_long,
-                label: 'View Orders',
-                onPressed: () {
-                  // TODO: Implement order management
-                },
+                icon: Icons.library_add,
+                label: 'Add Library Book',
+                onPressed: _showAddLibraryBookDialog,
               ),
             ],
           ),
@@ -596,5 +577,311 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
         ),
       ),
     );
+  }
+
+  void _showAddLibraryBookDialog() {
+    final TextEditingController bookIdController = TextEditingController();
+    final TextEditingController authorController = TextEditingController();
+    final TextEditingController titleController = TextEditingController();
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          insetPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.7,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: EdgeInsets.all(20.r),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(8.r),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryColor
+                                          .withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8.r),
+                                    ),
+                                    child: Icon(
+                                      Icons.library_add,
+                                      color: AppColors.primaryColor,
+                                      size: 24.r,
+                                    ),
+                                  ),
+                                  SizedBox(width: 12.w),
+                                  Text(
+                                    'Add Library Book',
+                                    style: TextStyle(
+                                      color: AppColors.primaryColor,
+                                      fontSize: 20.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 20.h),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(12.r),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            padding: EdgeInsets.all(16.r),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Book Details',
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                SizedBox(height: 16.h),
+                                TextField(
+                                  controller: bookIdController,
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 14.sp,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: 'Book ID',
+                                    hintText: 'Enter book ID',
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      borderSide:
+                                          BorderSide(color: Colors.grey[300]!),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      borderSide:
+                                          BorderSide(color: Colors.grey[300]!),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      borderSide: BorderSide(
+                                          color: AppColors.primaryColor),
+                                    ),
+                                    prefixIcon: Icon(Icons.numbers,
+                                        color: AppColors.primaryColor),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16.w, vertical: 12.h),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                ),
+                                SizedBox(height: 16.h),
+                                TextField(
+                                  controller: authorController,
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 14.sp,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: 'Author',
+                                    hintText: 'Enter author name',
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      borderSide:
+                                          BorderSide(color: Colors.grey[300]!),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      borderSide:
+                                          BorderSide(color: Colors.grey[300]!),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      borderSide: BorderSide(
+                                          color: AppColors.primaryColor),
+                                    ),
+                                    prefixIcon: Icon(Icons.person,
+                                        color: AppColors.primaryColor),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16.w, vertical: 12.h),
+                                  ),
+                                ),
+                                SizedBox(height: 16.h),
+                                TextField(
+                                  controller: titleController,
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 14.sp,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: 'Title',
+                                    hintText: 'Enter book title',
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      borderSide:
+                                          BorderSide(color: Colors.grey[300]!),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      borderSide:
+                                          BorderSide(color: Colors.grey[300]!),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      borderSide: BorderSide(
+                                          color: AppColors.primaryColor),
+                                    ),
+                                    prefixIcon: Icon(Icons.book,
+                                        color: AppColors.primaryColor),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16.w, vertical: 12.h),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 24.h),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 16.w, vertical: 8.h),
+                                ),
+                                child: Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              ElevatedButton(
+                                onPressed: isLoading
+                                    ? null
+                                    : () async {
+                                        if (bookIdController.text.isEmpty ||
+                                            authorController.text.isEmpty ||
+                                            titleController.text.isEmpty) {
+                                          _showMessage('Please fill all fields',
+                                              isError: true);
+                                          return;
+                                        }
+
+                                        setState(() => isLoading = true);
+
+                                        try {
+                                          final response = await http.post(
+                                            Uri.parse(
+                                                'https://book-app-backend-production-304e.up.railway.app/library/add'),
+                                            headers: {
+                                              'Content-Type': 'application/json'
+                                            },
+                                            body: json.encode({
+                                              'bookid': int.parse(
+                                                  bookIdController.text),
+                                              'author': authorController.text,
+                                              'title': titleController.text,
+                                            }),
+                                          );
+
+                                          if (response.statusCode == 200) {
+                                            Navigator.pop(context);
+                                            _showMessage(
+                                                'Book added successfully');
+                                          } else {
+                                            throw Exception(
+                                                'Failed to add book');
+                                          }
+                                        } catch (e) {
+                                          _showMessage('Error: ${e.toString()}',
+                                              isError: true);
+                                        } finally {
+                                          setState(() => isLoading = false);
+                                        }
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryColor,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 20.w, vertical: 10.h),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.r),
+                                  ),
+                                ),
+                                child: isLoading
+                                    ? SizedBox(
+                                        width: 20.w,
+                                        height: 20.w,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  Colors.white),
+                                        ),
+                                      )
+                                    : Text(
+                                        'Add Book',
+                                        style: TextStyle(
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    if (isError) {
+      CustomSnackBar.showError(
+        context: context,
+        message: message,
+      );
+    } else {
+      CustomSnackBar.showSuccess(
+        context: context,
+        message: message,
+      );
+    }
   }
 }

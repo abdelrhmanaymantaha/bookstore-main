@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:bookstore_app/core/router/router_names.dart';
 import 'package:bookstore_app/view/admin/admin_screen.dart';
 import 'package:bookstore_app/view/orders/orders_screen.dart';
+import 'package:bookstore_app/view/account/borrowed_books_page.dart';
+import '../../core/widgets/custom_snackbar.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -48,11 +50,9 @@ class _AccountScreenState extends State<AccountScreen> {
     } catch (e) {
       debugPrint('Firestore access error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Database error: $e'),
-            backgroundColor: Colors.red,
-          ),
+        CustomSnackBar.showError(
+          context: context,
+          message: 'Database error: $e',
         );
       }
     }
@@ -78,21 +78,17 @@ class _AccountScreenState extends State<AccountScreen> {
           .set(userData, SetOptions(merge: true));
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile created successfully!'),
-            backgroundColor: Colors.green,
-          ),
+        CustomSnackBar.showSuccess(
+          context: context,
+          message: 'Profile created successfully!',
         );
       }
     } catch (e) {
       debugPrint('Error creating default profile: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error creating profile: $e'),
-            backgroundColor: Colors.red,
-          ),
+        CustomSnackBar.showError(
+          context: context,
+          message: 'Error creating profile: $e',
         );
       }
     }
@@ -133,11 +129,9 @@ class _AccountScreenState extends State<AccountScreen> {
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error signing out: $e'),
-                      backgroundColor: Colors.red,
-                    ),
+                  CustomSnackBar.showError(
+                    context: context,
+                    message: 'Error signing out: $e',
                   );
                 }
               }
@@ -371,6 +365,18 @@ class _AccountScreenState extends State<AccountScreen> {
               );
             },
           ),
+          _buildProfileSection(
+            title: 'Borrowed Books',
+            icon: Icons.book,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BorrowedBooksPage(),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -443,41 +449,19 @@ class _AccountScreenState extends State<AccountScreen> {
       text: userData['displayName'] ?? '',
     );
     final formKey = GlobalKey<FormState>();
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    void showMessage(String message, bool isSuccess) {
-      scaffoldMessenger.clearSnackBars();
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(
-                isSuccess ? Icons.check_circle : Icons.error,
-                color: Colors.white,
-                size: 20.r,
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Text(
-                  message,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: isSuccess ? Colors.green : Colors.red,
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.all(16.r),
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          duration: const Duration(seconds: 3),
-        ),
-      );
+    void _showMessage(String message, {bool isError = false}) {
+      if (isError) {
+        CustomSnackBar.showError(
+          context: context,
+          message: message,
+        );
+      } else {
+        CustomSnackBar.showSuccess(
+          context: context,
+          message: message,
+        );
+      }
     }
 
     return showDialog(
@@ -617,13 +601,14 @@ class _AccountScreenState extends State<AccountScreen> {
 
                             if (mounted) {
                               Navigator.pop(dialogContext);
-                              showMessage('Profile updated successfully', true);
+                              _showMessage('Profile updated successfully');
                             }
                           }
                         } catch (e) {
                           if (mounted) {
                             Navigator.pop(dialogContext);
-                            showMessage('Error updating profile: $e', false);
+                            _showMessage('Error updating profile: $e',
+                                isError: true);
                           }
                         }
                       }

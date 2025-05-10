@@ -1,4 +1,5 @@
 import 'package:bookstore_app/core/constants/app_colors.dart';
+import 'package:bookstore_app/core/widgets/custom_snackbar.dart';
 
 import 'package:bookstore_app/models/book_model/book_model.dart';
 import 'package:bookstore_app/view_model/cart_view_model/cart_view_model.dart';
@@ -6,27 +7,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-
 class BookDetailScreen extends ConsumerWidget {
   const BookDetailScreen({super.key, required this.book});
 
   final BookModel book;
 
-  void showSnackBar(BuildContext context, String text) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          text,
-          style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                color: Colors.black,
-              ),
-        ),
-        showCloseIcon: true,
-        closeIconColor: AppColors.primaryColor,
-        backgroundColor: Colors.white,
-      ),
-    );
+  void _showMessage(BuildContext context, String message,
+      {bool isError = false}) {
+    if (isError) {
+      CustomSnackBar.showError(
+        context: context,
+        message: message,
+      );
+    } else {
+      CustomSnackBar.showSuccess(
+        context: context,
+        message: message,
+      );
+    }
   }
 
   @override
@@ -43,8 +41,7 @@ class BookDetailScreen extends ConsumerWidget {
             style: Theme.of(context).textTheme.titleSmall,
           ),
           centerTitle: true,
-          actions: [
-          ],
+          actions: [],
         ),
         body: Padding(
           padding: const EdgeInsets.all(20).r,
@@ -164,7 +161,7 @@ class BookDetailScreen extends ConsumerWidget {
                             onPressed: () {
                               if (cartBooks
                                   .any((item) => item.book.id == book.id)) {
-                                showSnackBar(
+                                _showMessage(
                                   context,
                                   'Book is already in cart.',
                                 );
@@ -175,7 +172,7 @@ class BookDetailScreen extends ConsumerWidget {
                                   .read(cartViewModelProvider.notifier)
                                   .addToCart(book);
 
-                              showSnackBar(
+                              _showMessage(
                                 context,
                                 'Book has been added to cart.',
                               );

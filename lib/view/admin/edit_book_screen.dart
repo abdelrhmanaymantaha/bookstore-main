@@ -4,6 +4,9 @@ import 'package:bookstore_app/models/book_model/book_model.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/widgets/custom_snackbar.dart';
 
 class EditBookScreen extends StatefulWidget {
   final BookModel book;
@@ -84,28 +87,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
 
       if (response.statusCode == 200) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white, size: 20.r),
-                  SizedBox(width: 8.w),
-                  Flexible(
-                    child: Text(
-                      'Book updated successfully',
-                      style: TextStyle(fontSize: 14.sp),
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.fixed,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
-              ),
-            ),
-          );
+          _showMessage('Book updated successfully');
           Navigator.pop(context, true);
         }
       } else {
@@ -116,33 +98,26 @@ class _EditBookScreenState extends State<EditBookScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.error, color: Colors.white, size: 20.r),
-                SizedBox(width: 8.w),
-                Flexible(
-                  child: Text(
-                    'Error updating book: $e',
-                    style: TextStyle(fontSize: 14.sp),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.fixed,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
-            ),
-          ),
-        );
+        _showMessage('Error updating book: $e', isError: true);
       }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    if (isError) {
+      CustomSnackBar.showError(
+        context: context,
+        message: message,
+      );
+    } else {
+      CustomSnackBar.showSuccess(
+        context: context,
+        message: message,
+      );
     }
   }
 

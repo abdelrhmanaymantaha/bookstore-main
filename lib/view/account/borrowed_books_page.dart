@@ -7,38 +7,21 @@ import '../../core/constants/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/widgets/custom_snackbar.dart';
 
-class LibraryPage extends StatefulWidget {
-  const LibraryPage({super.key});
+class BorrowedBooksPage extends StatefulWidget {
+  const BorrowedBooksPage({super.key});
 
   @override
-  State<LibraryPage> createState() => _LibraryPageState();
+  State<BorrowedBooksPage> createState() => _BorrowedBooksPageState();
 }
 
-class _LibraryPageState extends State<LibraryPage>
+class _BorrowedBooksPageState extends State<BorrowedBooksPage>
     with SingleTickerProviderStateMixin {
   List<LibraryBook> books = [];
-  List<LibraryBook> filteredBooks = [];
   bool isLoading = true;
   String error = '';
   final user = FirebaseAuth.instance.currentUser;
   late final AnimationController _animationController;
   late final Animation<double> _fadeAnimation;
-  final TextEditingController _searchController = TextEditingController();
-  bool _isSearching = false;
-
-  void _showMessage(String message, {bool isError = false}) {
-    if (isError) {
-      CustomSnackBar.showError(
-        context: context,
-        message: message,
-      );
-    } else {
-      CustomSnackBar.showSuccess(
-        context: context,
-        message: message,
-      );
-    }
-  }
 
   @override
   void initState() {
@@ -51,31 +34,17 @@ class _LibraryPageState extends State<LibraryPage>
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
     _animationController.forward();
-    _fetchBooks();
+    _fetchBorrowedBooks();
   }
 
   @override
   void dispose() {
     _animationController.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
-  void _filterBooks(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        filteredBooks = books;
-      } else {
-        filteredBooks = books.where((book) {
-          return book.title.toLowerCase().contains(query.toLowerCase()) ||
-              book.author.toLowerCase().contains(query.toLowerCase());
-        }).toList();
-      }
-    });
-  }
-
-  Future<void> _fetchBooks() async {
-    if (!mounted) return;
+  Future<void> _fetchBorrowedBooks() async {
+    if (!mounted || user == null) return;
 
     setState(() {
       isLoading = true;
@@ -86,7 +55,7 @@ class _LibraryPageState extends State<LibraryPage>
       final response = await http
           .get(
             Uri.parse(
-                'https://book-app-backend-production-304e.up.railway.app/library'),
+                'https://book-app-backend-production-304e.up.railway.app/library/userbooks?email=${user!.email}'),
           )
           .timeout(const Duration(seconds: 10));
 
@@ -96,12 +65,11 @@ class _LibraryPageState extends State<LibraryPage>
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           books = data.map((json) => LibraryBook.fromJson(json)).toList();
-          filteredBooks = books;
           isLoading = false;
         });
       } else {
         setState(() {
-          error = 'Failed to load books. Please try again.';
+          error = 'Failed to load borrowed books. Please try again.';
           isLoading = false;
         });
       }
@@ -114,17 +82,14 @@ class _LibraryPageState extends State<LibraryPage>
     }
   }
 
-  Future<void> _borrowBook(LibraryBook book) async {
-    if (user == null) {
-      _showMessage('Please login to borrow books', isError: true);
-      return;
-    }
+  Future<void> _returnBook(LibraryBook book) async {
+    if (user == null) return;
 
     try {
       final response = await http
           .put(
             Uri.parse(
-                'https://book-app-backend-production-304e.up.railway.app/library/borrow'),
+                'https://book-app-backend-production-304e.up.railway.app/library/return'),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
               'bookid': book.bookid,
@@ -136,19 +101,27 @@ class _LibraryPageState extends State<LibraryPage>
       if (!mounted) return;
 
       if (response.statusCode == 200) {
-        _showMessage('Book borrowed successfully!');
-        _fetchBooks();
+        CustomSnackBar.showSuccess(
+          context: context,
+          message: 'Book returned successfully!',
+        );
+        _fetchBorrowedBooks();
       } else {
-        _showMessage('Failed to borrow book. Please try again.', isError: true);
+        CustomSnackBar.showError(
+          context: context,
+          message: 'Failed to return book. Please try again.',
+        );
       }
     } catch (e) {
       if (!mounted) return;
-      _showMessage('Network error. Please check your connection and try again.',
-          isError: true);
+      CustomSnackBar.showError(
+        context: context,
+        message: 'Network error. Please check your connection and try again.',
+      );
     }
   }
 
-  void _showBorrowDialog(LibraryBook book) {
+  void _showReturnDialog(LibraryBook book) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -181,7 +154,7 @@ class _LibraryPageState extends State<LibraryPage>
                   ),
                   SizedBox(width: 12.w),
                   Text(
-                    'Borrow Book',
+                    'Return Book',
                     style: TextStyle(
                       color: AppColors.primaryColor,
                       fontSize: 20.sp,
@@ -192,7 +165,7 @@ class _LibraryPageState extends State<LibraryPage>
               ),
               SizedBox(height: 20.h),
               Text(
-                'Would you like to borrow:',
+                'Would you like to return:',
                 style: TextStyle(
                   color: Colors.black87,
                   fontSize: 16.sp,
@@ -266,7 +239,7 @@ class _LibraryPageState extends State<LibraryPage>
                   ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      _borrowBook(book);
+                      _returnBook(book);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
@@ -279,7 +252,7 @@ class _LibraryPageState extends State<LibraryPage>
                       ),
                     ),
                     child: Text(
-                      'Borrow',
+                      'Return',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w500,
@@ -295,85 +268,33 @@ class _LibraryPageState extends State<LibraryPage>
     );
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      height: 56.h,
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: _searchController,
-        onChanged: _filterBooks,
-        style: TextStyle(
-          color: Colors.black87,
-          fontSize: 16.sp,
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          hintText: 'Search books...',
-          hintStyle: TextStyle(
-            color: Colors.grey[400],
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w400,
-          ),
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: AppColors.primaryColor,
-            size: 24.r,
-          ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: Icon(
-                    Icons.clear_rounded,
-                    color: Colors.grey[400],
-                    size: 24.r,
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    _filterBooks('');
-                  },
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding:
-              EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-        ),
-      ),
-    );
-  }
-
   Widget _buildBookList() {
-    if (filteredBooks.isEmpty) {
+    if (books.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              _searchController.text.isEmpty
-                  ? Icons.book_outlined
-                  : Icons.search_off,
-              size: 48.r,
-              color: Colors.grey,
+              Icons.book_outlined,
+              size: 64.r,
+              color: Colors.grey[400],
             ),
             SizedBox(height: 16.h),
             Text(
-              _searchController.text.isEmpty
-                  ? 'No books available'
-                  : 'No books found matching "${_searchController.text}"',
+              'No Borrowed Books',
               style: TextStyle(
-                color: Colors.black87,
-                fontSize: 16.sp,
+                color: Colors.grey[600],
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w600,
               ),
-              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'You haven\'t borrowed any books yet',
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 14.sp,
+              ),
             ),
           ],
         ),
@@ -382,9 +303,9 @@ class _LibraryPageState extends State<LibraryPage>
 
     return ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      itemCount: filteredBooks.length,
+      itemCount: books.length,
       itemBuilder: (context, index) {
-        final book = filteredBooks[index];
+        final book = books[index];
         return Card(
           margin: EdgeInsets.only(bottom: 12.h),
           elevation: 0,
@@ -397,7 +318,7 @@ class _LibraryPageState extends State<LibraryPage>
             ),
           ),
           child: InkWell(
-            onTap: book.available ? () => _showBorrowDialog(book) : null,
+            onTap: () => _showReturnDialog(book),
             borderRadius: BorderRadius.circular(12.r),
             child: Padding(
               padding: EdgeInsets.all(16.r),
@@ -445,21 +366,17 @@ class _LibraryPageState extends State<LibraryPage>
                       vertical: 6.h,
                     ),
                     decoration: BoxDecoration(
-                      color: book.available
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.red.withOpacity(0.1),
+                      color: Colors.green.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20.r),
                       border: Border.all(
-                        color: book.available
-                            ? Colors.green.withOpacity(0.3)
-                            : Colors.red.withOpacity(0.3),
+                        color: Colors.green.withOpacity(0.3),
                         width: 1,
                       ),
                     ),
                     child: Text(
-                      book.available ? 'Available' : 'Not Available',
+                      'Borrowed',
                       style: TextStyle(
-                        color: book.available ? Colors.green : Colors.red,
+                        color: Colors.green,
                         fontWeight: FontWeight.w500,
                         fontSize: 12.sp,
                       ),
@@ -482,7 +399,7 @@ class _LibraryPageState extends State<LibraryPage>
         backgroundColor: Colors.grey[50],
         elevation: 0,
         title: Text(
-          'Library',
+          'Borrowed Books',
           style: TextStyle(
             color: AppColors.primaryColor,
             fontSize: 24.sp,
@@ -490,10 +407,14 @@ class _LibraryPageState extends State<LibraryPage>
           ),
         ),
         centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.primaryColor),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _fetchBooks,
+            onPressed: _fetchBorrowedBooks,
             color: AppColors.primaryColor,
           ),
         ],
@@ -501,80 +422,79 @@ class _LibraryPageState extends State<LibraryPage>
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: isLoading
-            ? _buildLoadingWidget()
-            : error.isNotEmpty
-                ? _buildErrorWidget()
-                : Column(
-                    children: [
-                      _buildSearchBar(),
-                      Expanded(
-                        child: RefreshIndicator(
-                          onRefresh: _fetchBooks,
-                          color: AppColors.primaryColor,
-                          backgroundColor: Colors.grey[50],
-                          child: _buildBookList(),
-                        ),
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      color: AppColors.primaryColor,
+                    ),
+                    SizedBox(height: 16.h),
+                    Text(
+                      'Loading your borrowed books...',
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: 16.sp,
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              )
+            : error.isNotEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64.r,
+                          color: Colors.red,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'Oops!',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          error,
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontSize: 16.sp,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 24.h),
+                        ElevatedButton.icon(
+                          onPressed: _fetchBorrowedBooks,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Try Again'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 24.w,
+                              vertical: 12.h,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _fetchBorrowedBooks,
+                    color: AppColors.primaryColor,
+                    backgroundColor: Colors.grey[50],
+                    child: _buildBookList(),
                   ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingWidget() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(
-            color: AppColors.primaryColor,
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            'Loading books...',
-            style: TextStyle(
-              color: Colors.black87,
-              fontSize: 16.sp,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorWidget() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 48.r,
-            color: Colors.red,
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            error,
-            style: TextStyle(
-              color: Colors.black87,
-              fontSize: 16.sp,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 16.h),
-          ElevatedButton.icon(
-            onPressed: _fetchBooks,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Try Again'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-            ),
-          ),
-        ],
       ),
     );
   }

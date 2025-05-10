@@ -1,10 +1,12 @@
 import 'package:bookstore_app/core/router/router_names.dart';
 import 'package:bookstore_app/view_model/auth_view_model/auth_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:bookstore_app/core/common/widgets/custom_button.dart';
 import 'package:bookstore_app/core/constants/app_colors.dart';
 import 'package:bookstore_app/view/auth/widgets/custom_text_field.dart';
+import 'package:bookstore_app/core/widgets/custom_snackbar.dart';
 
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -29,26 +31,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       print('Auth State Changed: $next');
       if (next is AsyncError) {
         print('Auth Error: ${next.error}');
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              next.error.toString(),
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                    color: Colors.black,
-                  ),
-            ),
-            duration: const Duration(seconds: 5),
-            showCloseIcon: true,
-            closeIconColor: AppColors.primaryColor,
-            backgroundColor: Colors.white,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 50).r,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20).r,
-            ),
-          ),
-        );
+        _showMessage(next.error.toString(), isError: true);
       }
     });
 
@@ -306,5 +289,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       ),
     );
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    if (isError) {
+      CustomSnackBar.showError(
+        context: context,
+        message: message,
+      );
+    } else {
+      CustomSnackBar.showSuccess(
+        context: context,
+        message: message,
+      );
+    }
   }
 }

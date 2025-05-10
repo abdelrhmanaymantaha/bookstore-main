@@ -13,6 +13,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/widgets/custom_snackbar.dart';
 
 class RegisterScreen extends StatefulHookConsumerWidget {
   const RegisterScreen({super.key});
@@ -55,30 +56,25 @@ class _LoginScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
+  void _showMessage(String message, {bool isError = false}) {
+    if (isError) {
+      CustomSnackBar.showError(
+        context: context,
+        message: message,
+      );
+    } else {
+      CustomSnackBar.showSuccess(
+        context: context,
+        message: message,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen<AsyncValue<bool>>(authViewModelProvider, (previous, next) {
       if (next is AsyncError) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              next.error.toString(),
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                    color: Colors.black,
-                  ),
-            ),
-            duration: const Duration(seconds: 5),
-            showCloseIcon: true,
-            closeIconColor: AppColors.primaryColor,
-            backgroundColor: Colors.white,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 50).r,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20).r,
-            ),
-          ),
-        );
+        _showMessage(next.error.toString(), isError: true);
       }
     });
 
@@ -240,27 +236,15 @@ class _LoginScreenState extends ConsumerState<RegisterScreen> {
 
                                   if (context.mounted) {
                                     overlay.hide();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content:
-                                            Text('Registration successful!'),
-                                        backgroundColor: Colors.green,
-                                      ),
-                                    );
+                                    _showMessage('Registration successful!');
                                     context.pop();
                                   }
                                 }
                               }
                             } catch (e) {
                               overlay.hide();
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Registration failed: $e'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
+                              _showMessage('Registration failed: $e',
+                                  isError: true);
                             }
                           }
                         },
