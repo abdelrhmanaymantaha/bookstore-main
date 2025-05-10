@@ -20,21 +20,20 @@ class NavBarIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      // mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
-
       children: [
         Container(
           height: 32.h,
           width: 64.w,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 4,
-          ).r,
+          padding: EdgeInsets.symmetric(
+            horizontal: 20.w,
+            vertical: 4.h,
+          ),
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(24).r,
+            borderRadius: BorderRadius.circular(24.r),
           ),
           child: Icon(
             icon,
@@ -42,12 +41,12 @@ class NavBarIcon extends StatelessWidget {
             size: 24.r,
           ),
         ),
-        SizedBox(
-          height: 4.h,
-        ),
+        SizedBox(height: 4.h),
         Text(
           title,
           style: textStyle,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
         ),
       ],
     );

@@ -15,4 +15,5 @@ class RouterNames {
   static const categorySceen = 'category';
   static const admin = 'admin';
   static const String orders = 'orders';
+  static const String library = 'library';
 }

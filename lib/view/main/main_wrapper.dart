@@ -1,6 +1,7 @@
 import 'package:bookstore_app/view/account/account_screen.dart';
 import 'package:bookstore_app/view/cart/cart_screen.dart';
 import 'package:bookstore_app/view/categories/categories_screen.dart';
+import 'package:bookstore_app/view/library/library_page.dart';
 import 'package:bookstore_app/view/main/widgets/nav_bar_icon.dart';
 import 'package:flutter/material.dart';
 
@@ -73,6 +74,22 @@ class _MainWrapperState extends State<MainWrapper> {
       ),
       navBarItem(
         icon: NavBarIcon(
+          title: 'Library',
+          icon: Icons.library_books,
+          iconColor: AppColors.secondaryColor,
+          backgroundColor: AppColors.primaryColor,
+          textStyle: Theme.of(context).textTheme.titleSmall,
+        ),
+        inactiveIcon: NavBarIcon(
+          title: 'Library',
+          icon: Icons.library_books,
+          iconColor: AppColors.primaryColor,
+          backgroundColor: AppColors.secondaryColor,
+          textStyle: Theme.of(context).textTheme.bodySmall,
+        ),
+      ),
+      navBarItem(
+        icon: NavBarIcon(
           title: 'Cart',
           icon: Icons.shopping_cart,
           iconColor: AppColors.secondaryColor,
@@ -108,6 +125,7 @@ class _MainWrapperState extends State<MainWrapper> {
     List<Widget> screens = [
       const HomeScreen(),
       const CategoriesScreen(),
+      const LibraryPage(),
       const CartScreen(),
       const AccountScreen(),
     ];

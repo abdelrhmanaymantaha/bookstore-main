@@ -13,6 +13,7 @@ import 'package:bookstore_app/view/categories/categories_screen.dart';
 import 'package:bookstore_app/view/categories/category_screen.dart';
 import 'package:bookstore_app/view/home/home_screen.dart';
 import 'package:bookstore_app/view/home/see_more_screen.dart';
+import 'package:bookstore_app/view/library/library_page.dart';
 import 'package:bookstore_app/view/main/main_wrapper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,8 @@ final GlobalKey<NavigatorState> _rootNavigatorAccount =
     GlobalKey<NavigatorState>(debugLabel: 'shellAccount');
 final GlobalKey<NavigatorState> _rootNavigatorAdmin =
     GlobalKey<NavigatorState>(debugLabel: 'shellAdmin');
+final GlobalKey<NavigatorState> _rootNavigatorLibrary =
+    GlobalKey<NavigatorState>(debugLabel: 'shellLibrary');
 
 @riverpod
 GoRouter router(Ref ref) {
@@ -62,7 +65,8 @@ GoRouter router(Ref ref) {
           state.matchedLocation == '/cart' ||
           state.matchedLocation == '/account' ||
           state.matchedLocation == '/admin' ||
-          state.matchedLocation == '/orders';
+          state.matchedLocation == '/orders' ||
+          state.matchedLocation == '/library';
 
       if (!isLoggedIn && isGoingToProtectedRoute) {
         return state.namedLocation(RouterNames.welcome);
@@ -105,6 +109,18 @@ GoRouter router(Ref ref) {
                 name: RouterNames.categories,
                 path: '/categories',
                 builder: (context, state) => CategoriesScreen(
+                  key: state.pageKey,
+                ),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _rootNavigatorLibrary,
+            routes: [
+              GoRoute(
+                name: RouterNames.library,
+                path: '/library',
+                builder: (context, state) => LibraryPage(
                   key: state.pageKey,
                 ),
               ),
