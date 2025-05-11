@@ -1,9 +1,6 @@
 import 'package:bookstore_app/core/constants/app_colors.dart';
-import 'package:bookstore_app/core/router/router_names.dart';
-import 'package:bookstore_app/models/book_model/book_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 
 class SectionHeader extends StatelessWidget {
   const SectionHeader({

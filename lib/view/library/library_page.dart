@@ -24,7 +24,6 @@ class _LibraryPageState extends State<LibraryPage>
   late final AnimationController _animationController;
   late final Animation<double> _fadeAnimation;
   final TextEditingController _searchController = TextEditingController();
-  bool _isSearching = false;
 
   void _showMessage(String message, {bool isError = false}) {
     if (isError) {
