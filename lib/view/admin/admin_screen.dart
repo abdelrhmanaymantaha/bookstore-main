@@ -10,9 +10,196 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
+import 'package:bookstore_app/view/admin/edit_books_page.dart';
 
 class AdminScreen extends ConsumerStatefulWidget {
   const AdminScreen({super.key});
+
+  static String? _username;
+  static String? _password;
+
+  static String getBasicAuthHeader() {
+    if (_username == null || _password == null) {
+      throw Exception('Not authenticated');
+    }
+    return 'Basic ' + base64Encode(utf8.encode('$_username:$_password'));
+  }
+
+  static Future<bool> showLoginDialog(BuildContext context) async {
+    final TextEditingController usernameController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+    bool isLoading = false;
+
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return StatefulBuilder(
+              builder: (context, setState) => AlertDialog(
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.r),
+                ),
+                title: Text(
+                  'Admin Login',
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: usernameController,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14.sp,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Username',
+                        hintText: 'Enter username',
+                        labelStyle: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14.sp,
+                        ),
+                        hintStyle: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14.sp,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        prefixIcon:
+                            Icon(Icons.person, color: AppColors.primaryColor),
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: true,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14.sp,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        hintText: 'Enter password',
+                        labelStyle: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14.sp,
+                        ),
+                        hintStyle: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14.sp,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        prefixIcon:
+                            Icon(Icons.lock, color: AppColors.primaryColor),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                            if (usernameController.text.isEmpty ||
+                                passwordController.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Please fill all fields'),
+                                  backgroundColor: AppColors.errorColor,
+                                ),
+                              );
+                              return;
+                            }
+
+                            setState(() => isLoading = true);
+
+                            try {
+                              final response = await http.post(
+                                Uri.parse(
+                                    'https://book-app-backend-production-304e.up.railway.app/login'),
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': 'Basic ' +
+                                      base64Encode(utf8.encode(
+                                          '${usernameController.text}:${passwordController.text}')),
+                                },
+                              );
+
+                              if (response.statusCode == 200) {
+                                _username = usernameController.text;
+                                _password = passwordController.text;
+                                Navigator.of(context).pop(true);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Invalid credentials'),
+                                    backgroundColor: AppColors.errorColor,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error: ${e.toString()}'),
+                                  backgroundColor: AppColors.errorColor,
+                                ),
+                              );
+                            } finally {
+                              setState(() => isLoading = false);
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                    child: isLoading
+                        ? SizedBox(
+                            width: 20.w,
+                            height: 20.w,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Text(
+                            'Login',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ) ??
+        false;
+  }
 
   @override
   ConsumerState<AdminScreen> createState() => _AdminScreenState();
@@ -25,292 +212,32 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
   @override
   void initState() {
     super.initState();
-    _loadBooks();
+    print('AdminScreen initialized');
   }
 
-  Future<void> _loadBooks() async {
-    setState(() => _isLoading = true);
-    try {
-      final books =
-          await ref.read(homeViewModelProvider.notifier).getAllBooks();
-      setState(() => _books = books);
-    } catch (e) {
-      if (mounted) {
-        _showMessage('Error loading books: $e', isError: true);
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
+  void _showMessage(String message, {bool isError = false}) {
+    if (!mounted) return;
 
-  void _showBookSelectionDialog() {
-    if (_isLoading) {
-      showDialog(
-        context: context,
-        builder: (context) => Dialog(
-          backgroundColor: AppColors.secondaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(24.r),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(
-                  color: AppColors.primaryColor,
-                  strokeWidth: 3,
-                ),
-                SizedBox(height: 16.h),
-                Text(
-                  'Loading books...',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-      return;
-    }
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-    if (_books.isEmpty) {
-      showDialog(
-        context: context,
-        builder: (context) => Dialog(
-          backgroundColor: AppColors.secondaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(24.r),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 48.r,
-                  color: Colors.red[400],
-                ),
-                SizedBox(height: 16.h),
-                Text(
-                  'No Books Available',
-                  style: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red[400],
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  'Please add some books first',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                SizedBox(height: 24.h),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AddBookScreen(),
-                      ),
-                    ).then((added) {
-                      if (added == true) {
-                        _loadBooks();
-                      }
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 24.w,
-                      vertical: 12.h,
-                    ),
-                  ),
-                  child: Text(
-                    'Add New Book',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: AppColors.secondaryColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        child: SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.all(16.r),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Select a Book to Edit',
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close,
-                          color: AppColors.primaryColor, size: 24.r),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16.h),
-                Container(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _books.length,
-                    itemBuilder: (context, index) {
-                      final book = _books[index];
-                      return Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: Colors.grey[200]!,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.all(12.r),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(8.r),
-                            child: Image.network(
-                              book.imageUrl,
-                              width: 50.w,
-                              height: 70.h,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                width: 50.w,
-                                height: 70.h,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(8.r),
-                                ),
-                                child: Icon(Icons.book,
-                                    size: 30.r, color: Colors.grey[400]),
-                              ),
-                            ),
-                          ),
-                          title: Text(
-                            book.title,
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black87,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(height: 4.h),
-                              Text(
-                                book.author,
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: Colors.grey[600],
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 4.h),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.category_outlined,
-                                    size: 12.r,
-                                    color: Colors.grey[500],
-                                  ),
-                                  SizedBox(width: 4.w),
-                                  Text(
-                                    book.category,
-                                    style: TextStyle(
-                                      fontSize: 12.sp,
-                                      color: Colors.grey[500],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          trailing: Icon(
-                            Icons.arrow_forward_ios,
-                            size: 16.r,
-                            color: AppColors.primaryColor,
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    EditBookScreen(book: book),
-                              ),
-                            ).then((updated) {
-                              if (updated == true) {
-                                _loadBooks();
-                              }
-                            });
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
+    final snackBar = SnackBar(
+      content: Text(
+        message,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 14.sp,
         ),
       ),
+      backgroundColor: isError ? AppColors.errorColor : AppColors.successColor,
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.all(16.r),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      duration: const Duration(seconds: 3),
     );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   @override
@@ -393,18 +320,21 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
                             MaterialPageRoute(
                               builder: (context) => const AddBookScreen(),
                             ),
-                          ).then((added) {
-                            if (added == true) {
-                              _loadBooks();
-                            }
-                          });
+                          );
                         },
                       ),
                       SizedBox(height: 12.h),
                       _buildAdminButton(
                         icon: Icons.edit,
                         label: 'Edit Books',
-                        onPressed: _showBookSelectionDialog,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const EditBooksPage(),
+                            ),
+                          );
+                        },
                       ),
                       SizedBox(height: 12.h),
                       _buildAdminButton(
@@ -713,7 +643,9 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
                                       Uri.parse(
                                           'https://book-app-backend-production-304e.up.railway.app/library/add'),
                                       headers: {
-                                        'Content-Type': 'application/json'
+                                        'Content-Type': 'application/json',
+                                        'Authorization':
+                                            AdminScreen.getBasicAuthHeader(),
                                       },
                                       body: json.encode({
                                         'bookid':
@@ -723,7 +655,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
                                       }),
                                     );
 
-                                    if (response.statusCode == 200) {
+                                    if (response.statusCode == 201) {
                                       Navigator.pop(context);
                                       _showMessage('Book added successfully');
                                     } else {
@@ -774,31 +706,6 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
         ),
       ),
     );
-  }
-
-  void _showMessage(String message, {bool isError = false}) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-    final snackBar = SnackBar(
-      content: Text(
-        message,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 14.sp,
-        ),
-      ),
-      backgroundColor: isError ? AppColors.errorColor : AppColors.successColor,
-      behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.all(16.r),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      duration: const Duration(seconds: 3),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void _showDeleteBookDialog() {
@@ -879,12 +786,13 @@ class _DeleteLibraryBookPageState extends ConsumerState<DeleteLibraryBookPage> {
     });
 
     try {
-      final response = await http
-          .get(
-            Uri.parse(
-                'https://book-app-backend-production-304e.up.railway.app/library'),
-          )
-          .timeout(const Duration(seconds: 10));
+      final response = await http.get(
+        Uri.parse(
+            'https://book-app-backend-production-304e.up.railway.app/library'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 10));
 
       if (!mounted) return;
 
@@ -1006,7 +914,10 @@ class _DeleteLibraryBookPageState extends ConsumerState<DeleteLibraryBookPage> {
                 final response = await http.delete(
                   Uri.parse(
                       'https://book-app-backend-production-304e.up.railway.app/library/delete?bookid=${book.bookid}'),
-                  headers: {'Content-Type': 'application/json'},
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': AdminScreen.getBasicAuthHeader(),
+                  },
                 );
 
                 if (response.statusCode == 204) {
@@ -1329,14 +1240,27 @@ class _DeleteBookPageState extends ConsumerState<DeleteBookPage> {
     });
 
     try {
-      final allBooks =
-          await ref.read(homeViewModelProvider.notifier).getAllBooks();
+      final response = await http.get(
+        Uri.parse(
+            'https://book-app-backend-production-304e.up.railway.app/books'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': AdminScreen.getBasicAuthHeader(),
+        },
+      );
+
       if (!mounted) return;
-      setState(() {
-        books = allBooks;
-        filteredBooks = allBooks;
-        isLoading = false;
-      });
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          books = data.map((json) => BookModel.fromJson(json)).toList();
+          filteredBooks = books;
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load books');
+      }
     } catch (e) {
       if (!mounted) return;
       _showMessage('Error loading books: $e', isError: true);
@@ -1441,7 +1365,10 @@ class _DeleteBookPageState extends ConsumerState<DeleteBookPage> {
                 final response = await http.delete(
                   Uri.parse(
                       'https://book-app-backend-production-304e.up.railway.app/books/delete/${book.id}'),
-                  headers: {'Content-Type': 'application/json'},
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': AdminScreen.getBasicAuthHeader(),
+                  },
                 );
 
                 if (response.statusCode == 200) {

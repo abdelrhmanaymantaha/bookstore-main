@@ -7,7 +7,7 @@ enum Categories {
   dystopian(
     title: 'Dystopian',
     bgImageUrl:
-        'https://www.thecuriousreader.in/wp-content/uploads/2020/06/List-2019-2-_Cover-10-Feminist-Dystopian-Novels-That-Are-Not-%E2%80%98The-Handmaids-Tale%E2%80%99.png',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRHGhBDdoN4UhSbOw_6y6bG4BUeZH2QjOrQQ&s',
   ),
   romance(
     title: 'Romance',

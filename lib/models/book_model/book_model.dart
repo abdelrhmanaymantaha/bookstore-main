@@ -1,4 +1,3 @@
-
 class BookModel {
   final String id;
   final String title;
@@ -34,7 +33,7 @@ class BookModel {
 
   factory BookModel.fromJson(Map<String, dynamic> json) {
     return BookModel(
-      id: json['id'] as String,
+      id: json['id']?.toString() ?? '0',
       title: json['title'] as String,
       description: json['description'] as String,
       author: json['author'] as String,
@@ -42,7 +41,7 @@ class BookModel {
       category: json['category'] as String,
       rating: (json['rating'] as num).toDouble(),
       price: (json['price'] as num).toDouble(),
-      discount: json['discount'] as String?,
+      discount: json['discount']?.toString(),
       amount: json['amount'] as int?,
       isBestDeal: json['isBestDeal'] as bool,
       isTopBook: json['isTopBook'] as bool,

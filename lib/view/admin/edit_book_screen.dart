@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../core/widgets/custom_snackbar.dart';
+import 'admin_screen.dart';
 
 class EditBookScreen extends StatefulWidget {
   final BookModel book;
@@ -65,7 +66,10 @@ class _EditBookScreenState extends State<EditBookScreen> {
       final response = await http.put(
         Uri.parse(
             'https://book-app-backend-production-304e.up.railway.app/books/update/${widget.book.id}'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': AdminScreen.getBasicAuthHeader(),
+        },
         body: jsonEncode({
           'title': _titleController.text,
           'description': _descriptionController.text,

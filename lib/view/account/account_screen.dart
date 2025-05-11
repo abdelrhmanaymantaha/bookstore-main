@@ -105,11 +105,14 @@ class _AccountScreenState extends State<AccountScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminScreen()),
-            );
+          onPressed: () async {
+            final isAuthenticated = await AdminScreen.showLoginDialog(context);
+            if (isAuthenticated && mounted) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AdminScreen()),
+              );
+            }
           },
           icon: const Icon(Icons.admin_panel_settings),
         ),
