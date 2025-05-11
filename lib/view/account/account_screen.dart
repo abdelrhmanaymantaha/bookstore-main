@@ -118,26 +118,6 @@ class _AccountScreenState extends State<AccountScreen> {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              try {
-                await FirebaseAuth.instance.signOut();
-                if (mounted) {
-                  context.pushReplacementNamed(RouterNames.login);
-                }
-              } catch (e) {
-                if (mounted) {
-                  CustomSnackBar.showError(
-                    context: context,
-                    message: 'Error signing out: $e',
-                  );
-                }
-              }
-            },
-          ),
-        ],
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
@@ -302,52 +282,41 @@ class _AccountScreenState extends State<AccountScreen> {
                           color: Colors.white,
                         ),
                 ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    padding: EdgeInsets.all(8.r),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.edit,
-                      size: 20.r,
-                      color: Colors.white,
-                    ),
-                  ),
+              ],
+            ),
+          ),
+          SizedBox(height: 24.h),
+          Container(
+            padding: EdgeInsets.all(16.r),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow(
+                  icon: Icons.person_outline,
+                  label: 'Username',
+                  value: userData['displayName'] ?? 'Not set',
+                ),
+                SizedBox(height: 12.h),
+                _buildInfoRow(
+                  icon: Icons.email_outlined,
+                  label: 'Email',
+                  value: userData['email'] ?? 'Not set',
                 ),
               ],
             ),
           ),
           SizedBox(height: 24.h),
-          Center(
-            child: Text(
-              userData['displayName'] ?? 'User',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryColor,
-                  ),
-            ),
-          ),
-          SizedBox(height: 8.h),
-          Center(
-            child: Text(
-              userData['email'] ?? '',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
-            ),
-          ),
-          SizedBox(height: 40.h),
           _buildProfileSection(
             title: 'Edit Profile',
             icon: Icons.edit,
@@ -377,6 +346,64 @@ class _AccountScreenState extends State<AccountScreen> {
               );
             },
           ),
+          SizedBox(height: 24.h),
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(12.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () async {
+                  try {
+                    await FirebaseAuth.instance.signOut();
+                    if (mounted) {
+                      context.pushReplacementNamed(RouterNames.login);
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      CustomSnackBar.showError(
+                        context: context,
+                        message: 'Error signing out: $e',
+                      );
+                    }
+                  }
+                },
+                borderRadius: BorderRadius.circular(12.r),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.logout,
+                        color: Colors.white,
+                        size: 18.r,
+                      ),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'Logout',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -388,7 +415,7 @@ class _AccountScreenState extends State<AccountScreen> {
     required VoidCallback onTap,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16.h),
+      margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
@@ -406,11 +433,11 @@ class _AccountScreenState extends State<AccountScreen> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(12.r),
           child: Padding(
-            padding: EdgeInsets.all(16.r),
+            padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.r),
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(10.r),
+                  padding: EdgeInsets.all(8.r),
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8.r),
@@ -418,10 +445,10 @@ class _AccountScreenState extends State<AccountScreen> {
                   child: Icon(
                     icon,
                     color: AppColors.primaryColor,
-                    size: 24.r,
+                    size: 20.r,
                   ),
                 ),
-                SizedBox(width: 16.w),
+                SizedBox(width: 12.w),
                 Expanded(
                   child: Text(
                     title,
@@ -640,5 +667,65 @@ class _AccountScreenState extends State<AccountScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(8.r),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: Icon(
+            icon,
+            size: 20.r,
+            color: AppColors.primaryColor,
+          ),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.grey[600],
+                ),
+              ),
+              SizedBox(height: 2.h),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDate(dynamic timestamp) {
+    if (timestamp == null) return 'Not available';
+
+    try {
+      final date = timestamp is Timestamp
+          ? timestamp.toDate()
+          : DateTime.parse(timestamp.toString());
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      return 'Invalid date';
+    }
   }
 }
