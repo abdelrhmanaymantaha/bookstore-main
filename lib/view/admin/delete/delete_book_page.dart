@@ -231,32 +231,18 @@ class _DeleteBookPageState extends ConsumerState<DeleteBookPage> {
               child: TextField(
                 controller: searchController,
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 14.sp,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Search books...',
+                  hintText: 'Search books ...',
                   hintStyle: TextStyle(
                     color: Colors.grey[400],
                     fontSize: 14.sp,
                   ),
-                  prefixIcon: Icon(Icons.search, color: Colors.white),
-                  filled: true,
-                  fillColor: Colors.black,
+                  prefixIcon: Icon(Icons.search, color: AppColors.primaryColor),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                    borderSide: BorderSide(
-                      color: AppColors.primaryColor,
-                      width: 2,
-                    ),
                   ),
                   contentPadding:
                       EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
@@ -357,8 +343,11 @@ class _DeleteBookPageState extends ConsumerState<DeleteBookPage> {
                                         borderRadius:
                                             BorderRadius.circular(8.r),
                                       ),
-                                      child: Icon(Icons.book,
-                                          size: 30.r, color: Colors.grey[400]),
+                                      child: Icon(
+                                        Icons.book,
+                                        size: 30.r,
+                                        color: Colors.grey[400],
+                                      ),
                                     ),
                                   ),
                                 ),

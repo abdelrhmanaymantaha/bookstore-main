@@ -15,5 +15,13 @@ class AppTheme {
       selectionColor: Colors.lightBlue.withOpacity(0.3),
     ),
     textTheme: CTextTheme.lightTextTheme,
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      hintStyle: TextStyle(color: Colors.grey[600]),
+      labelStyle: const TextStyle(color: Colors.black),
+      prefixIconColor: Colors.black,
+      suffixIconColor: Colors.black,
+    ),
   );
 }

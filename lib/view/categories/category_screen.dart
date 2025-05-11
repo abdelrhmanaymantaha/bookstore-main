@@ -188,6 +188,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   ),
                   child: TextField(
                     controller: _searchController,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14.sp,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Search by title, author, or category...',
                       hintStyle: TextStyle(

@@ -3,8 +3,6 @@ import 'package:bookstore_app/core/constants/app_colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/widgets/custom_snackbar.dart';
 
 class Category {

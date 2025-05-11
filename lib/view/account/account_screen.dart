@@ -715,17 +715,4 @@ class _AccountScreenState extends State<AccountScreen> {
       ],
     );
   }
-
-  String _formatDate(dynamic timestamp) {
-    if (timestamp == null) return 'Not available';
-
-    try {
-      final date = timestamp is Timestamp
-          ? timestamp.toDate()
-          : DateTime.parse(timestamp.toString());
-      return '${date.day}/${date.month}/${date.year}';
-    } catch (e) {
-      return 'Invalid date';
-    }
-  }
 }

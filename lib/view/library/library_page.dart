@@ -314,7 +314,7 @@ class _LibraryPageState extends State<LibraryPage>
         controller: _searchController,
         onChanged: _filterBooks,
         style: TextStyle(
-          color: Colors.black87,
+          color: Colors.black,
           fontSize: 16.sp,
           fontWeight: FontWeight.w500,
         ),

@@ -242,7 +242,7 @@ class _DeleteLibraryBookPageState extends State<DeleteLibraryBookPage> {
             child: TextField(
               controller: searchController,
               style: TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontSize: 14.sp,
               ),
               decoration: InputDecoration(
@@ -251,23 +251,9 @@ class _DeleteLibraryBookPageState extends State<DeleteLibraryBookPage> {
                   color: Colors.grey[400],
                   fontSize: 14.sp,
                 ),
-                prefixIcon: Icon(Icons.search, color: Colors.black),
-                filled: true,
-                fillColor: Colors.black,
+                prefixIcon: Icon(Icons.search, color: AppColors.primaryColor),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide(
-                    color: AppColors.primaryColor,
-                    width: 2,
-                  ),
                 ),
                 contentPadding:
                     EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),

@@ -168,7 +168,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
         child: TextField(
           style: TextStyle(
-            color: AppColors.primaryColor,
+            color: Colors.black,
             fontSize: 16.sp,
             height: 1.0,
           ),

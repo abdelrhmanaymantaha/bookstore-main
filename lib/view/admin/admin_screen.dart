@@ -10,9 +10,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:bookstore_app/core/widgets/custom_snackbar.dart';
-import 'package:bookstore_app/view/admin/delete/delete_book_page.dart';
-import 'package:bookstore_app/view/admin/delete/delete_library_book_page.dart';
 
 class AdminScreen extends ConsumerStatefulWidget {
   const AdminScreen({super.key});
@@ -49,9 +46,6 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
   }
 
   void _showBookSelectionDialog() {
-    final TextEditingController searchController = TextEditingController();
-    List<BookModel> filteredBooks = _books;
-
     if (_isLoading) {
       showDialog(
         context: context,
@@ -163,283 +157,155 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Dialog(
-          backgroundColor: AppColors.secondaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          child: SingleChildScrollView(
-            child: Container(
-              padding: EdgeInsets.all(16.r),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Select a Book to Edit',
-                        style: TextStyle(
-                          fontSize: 20.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryColor,
-                        ),
+      builder: (context) => Dialog(
+        backgroundColor: AppColors.secondaryColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: SingleChildScrollView(
+          child: Container(
+            padding: EdgeInsets.all(16.r),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Select a Book to Edit',
+                      style: TextStyle(
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryColor,
                       ),
-                      IconButton(
-                        icon: Icon(Icons.close,
-                            color: AppColors.primaryColor, size: 24.r),
-                        onPressed: () => Navigator.pop(context),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close,
+                          color: AppColors.primaryColor, size: 24.r),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                Container(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  SizedBox(height: 16.h),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _books.length,
+                    itemBuilder: (context, index) {
+                      final book = _books[index];
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.grey[200]!,
+                              width: 1,
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: searchController,
-                      style: TextStyle(
-                        color: Colors.black87,
-                        fontSize: 14.sp,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Search books...',
-                        hintStyle: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 14.sp,
-                        ),
-                        prefixIcon: Icon(Icons.search,
-                            color: Colors.grey[400], size: 20.r),
-                        suffixIcon: searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: Icon(Icons.clear,
-                                    color: Colors.grey[400], size: 20.r),
-                                onPressed: () {
-                                  searchController.clear();
-                                  setState(() => filteredBooks = _books);
-                                },
-                              )
-                            : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16.w, vertical: 12.h),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          filteredBooks = _books.where((book) {
-                            final title = book.title.toLowerCase();
-                            final author = book.author.toLowerCase();
-                            final category = book.category.toLowerCase();
-                            final search = value.toLowerCase();
-                            return title.contains(search) ||
-                                author.contains(search) ||
-                                category.contains(search);
-                          }).toList();
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height * 0.5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: _isLoading
-                        ? Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(24.r),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.all(12.r),
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(8.r),
+                            child: Image.network(
+                              book.imageUrl,
+                              width: 50.w,
+                              height: 70.h,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                width: 50.w,
+                                height: 70.h,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8.r),
+                                ),
+                                child: Icon(Icons.book,
+                                    size: 30.r, color: Colors.grey[400]),
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            book.title,
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: 4.h),
+                              Text(
+                                book.author,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Colors.grey[600],
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              SizedBox(height: 4.h),
+                              Row(
                                 children: [
-                                  CircularProgressIndicator(
-                                    color: AppColors.primaryColor,
-                                    strokeWidth: 3,
+                                  Icon(
+                                    Icons.category_outlined,
+                                    size: 12.r,
+                                    color: Colors.grey[500],
                                   ),
-                                  SizedBox(height: 16.h),
+                                  SizedBox(width: 4.w),
                                   Text(
-                                    'Loading books...',
+                                    book.category,
                                     style: TextStyle(
-                                      fontSize: 14.sp,
-                                      color: Colors.grey[600],
+                                      fontSize: 12.sp,
+                                      color: Colors.grey[500],
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                          )
-                        : filteredBooks.isEmpty
-                            ? Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(24.r),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        searchController.text.isEmpty
-                                            ? Icons.book_outlined
-                                            : Icons.search_off,
-                                        size: 48.r,
-                                        color: Colors.grey[400],
-                                      ),
-                                      SizedBox(height: 16.h),
-                                      Text(
-                                        searchController.text.isEmpty
-                                            ? 'No books available'
-                                            : 'No books found',
-                                        style: TextStyle(
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                      SizedBox(height: 8.h),
-                                      Text(
-                                        searchController.text.isEmpty
-                                            ? 'Add a new book to get started'
-                                            : 'Try different search terms',
-                                        style: TextStyle(
-                                          fontSize: 14.sp,
-                                          color: Colors.grey[500],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: filteredBooks.length,
-                                itemBuilder: (context, index) {
-                                  final book = filteredBooks[index];
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: Colors.grey[200]!,
-                                          width: 1,
-                                        ),
-                                      ),
-                                    ),
-                                    child: ListTile(
-                                      contentPadding: EdgeInsets.all(12.r),
-                                      leading: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(8.r),
-                                        child: Image.network(
-                                          book.imageUrl,
-                                          width: 50.w,
-                                          height: 70.h,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              Container(
-                                            width: 50.w,
-                                            height: 70.h,
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(8.r),
-                                            ),
-                                            child: Icon(Icons.book,
-                                                size: 30.r,
-                                                color: Colors.grey[400]),
-                                          ),
-                                        ),
-                                      ),
-                                      title: Text(
-                                        book.title,
-                                        style: TextStyle(
-                                          fontSize: 14.sp,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.black87,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      subtitle: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          SizedBox(height: 4.h),
-                                          Text(
-                                            book.author,
-                                            style: TextStyle(
-                                              fontSize: 12.sp,
-                                              color: Colors.grey[600],
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          SizedBox(height: 4.h),
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.category_outlined,
-                                                size: 12.r,
-                                                color: Colors.grey[500],
-                                              ),
-                                              SizedBox(width: 4.w),
-                                              Text(
-                                                book.category,
-                                                style: TextStyle(
-                                                  fontSize: 12.sp,
-                                                  color: Colors.grey[500],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                      trailing: Icon(
-                                        Icons.arrow_forward_ios,
-                                        size: 16.r,
-                                        color: AppColors.primaryColor,
-                                      ),
-                                      onTap: () {
-                                        Navigator.pop(context);
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                EditBookScreen(book: book),
-                                          ),
-                                        ).then((updated) {
-                                          if (updated == true) {
-                                            _loadBooks();
-                                          }
-                                        });
-                                      },
-                                    ),
-                                  );
-                                },
+                            ],
+                          ),
+                          trailing: Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16.r,
+                            color: AppColors.primaryColor,
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    EditBookScreen(book: book),
                               ),
+                            ).then((updated) {
+                              if (updated == true) {
+                                _loadBooks();
+                              }
+                            });
+                          },
+                        ),
+                      );
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -735,9 +601,21 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
                     TextField(
                       controller: bookIdController,
                       keyboardType: TextInputType.number,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14.sp,
+                      ),
                       decoration: InputDecoration(
                         labelText: 'Book ID',
                         hintText: 'Enter book ID',
+                        labelStyle: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14.sp,
+                        ),
+                        hintStyle: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14.sp,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.r),
                         ),
@@ -750,9 +628,21 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
                     SizedBox(height: 16.h),
                     TextField(
                       controller: authorController,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14.sp,
+                      ),
                       decoration: InputDecoration(
                         labelText: 'Author',
                         hintText: 'Enter author name',
+                        labelStyle: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14.sp,
+                        ),
+                        hintStyle: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14.sp,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.r),
                         ),
@@ -765,9 +655,21 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
                     SizedBox(height: 16.h),
                     TextField(
                       controller: titleController,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14.sp,
+                      ),
                       decoration: InputDecoration(
                         labelText: 'Title',
                         hintText: 'Enter book title',
+                        labelStyle: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14.sp,
+                        ),
+                        hintStyle: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14.sp,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.r),
                         ),
@@ -929,6 +831,7 @@ class DeleteLibraryBookPage extends ConsumerStatefulWidget {
 class _DeleteLibraryBookPageState extends ConsumerState<DeleteLibraryBookPage> {
   final TextEditingController searchController = TextEditingController();
   List<LibraryBook> filteredBooks = [];
+  List<LibraryBook> books = [];
   bool isLoading = true;
 
   void _showMessage(String message, {bool isError = false}) {
@@ -988,8 +891,8 @@ class _DeleteLibraryBookPageState extends ConsumerState<DeleteLibraryBookPage> {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          filteredBooks =
-              data.map((json) => LibraryBook.fromJson(json)).toList();
+          books = data.map((json) => LibraryBook.fromJson(json)).toList();
+          filteredBooks = books;
           isLoading = false;
         });
       } else {
@@ -1167,32 +1070,77 @@ class _DeleteLibraryBookPageState extends ConsumerState<DeleteLibraryBookPage> {
           children: [
             Padding(
               padding: EdgeInsets.all(16.r),
-              child: TextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search library books...',
-                  prefixIcon: Icon(Icons.search, color: AppColors.primaryColor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    if (value.isEmpty) {
-                      fetchLibraryBooks();
-                    } else {
-                      filteredBooks = filteredBooks.where((book) {
-                        final title = book.title.toLowerCase();
-                        final author = book.author.toLowerCase();
-                        final search = value.toLowerCase();
-                        return title.contains(search) ||
-                            author.contains(search);
-                      }).toList();
-                    }
-                  });
-                },
+                child: TextField(
+                  controller: searchController,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 14.sp,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Search by title or author...',
+                    hintStyle: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 14.sp,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: AppColors.primaryColor,
+                      size: 20.r,
+                    ),
+                    suffixIcon: searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(
+                              Icons.clear,
+                              color: Colors.grey[400],
+                              size: 20.r,
+                            ),
+                            onPressed: () {
+                              searchController.clear();
+                              setState(() {
+                                filteredBooks = books;
+                              });
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      if (value.isEmpty) {
+                        filteredBooks = books;
+                      } else {
+                        final lowercaseQuery = value.toLowerCase();
+                        filteredBooks = books.where((book) {
+                          return book.title
+                                  .toLowerCase()
+                                  .contains(lowercaseQuery) ||
+                              book.author
+                                  .toLowerCase()
+                                  .contains(lowercaseQuery);
+                        }).toList();
+                      }
+                    });
+                  },
+                ),
               ),
             ),
             Expanded(
@@ -1230,7 +1178,7 @@ class _DeleteLibraryBookPageState extends ConsumerState<DeleteLibraryBookPage> {
                               Text(
                                 searchController.text.isEmpty
                                     ? 'No library books available'
-                                    : 'No library books found',
+                                    : 'No books found',
                                 style: TextStyle(
                                   fontSize: 14.sp,
                                   color: Colors.grey[500],
@@ -1333,6 +1281,7 @@ class DeleteBookPage extends ConsumerStatefulWidget {
 class _DeleteBookPageState extends ConsumerState<DeleteBookPage> {
   final TextEditingController searchController = TextEditingController();
   List<BookModel> filteredBooks = [];
+  List<BookModel> books = [];
   bool isLoading = true;
 
   void _showMessage(String message, {bool isError = false}) {
@@ -1380,11 +1329,12 @@ class _DeleteBookPageState extends ConsumerState<DeleteBookPage> {
     });
 
     try {
-      final books =
+      final allBooks =
           await ref.read(homeViewModelProvider.notifier).getAllBooks();
       if (!mounted) return;
       setState(() {
-        filteredBooks = books;
+        books = allBooks;
+        filteredBooks = allBooks;
         isLoading = false;
       });
     } catch (e) {
@@ -1555,34 +1505,80 @@ class _DeleteBookPageState extends ConsumerState<DeleteBookPage> {
           children: [
             Padding(
               padding: EdgeInsets.all(16.r),
-              child: TextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search books...',
-                  prefixIcon: Icon(Icons.search, color: AppColors.primaryColor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    if (value.isEmpty) {
-                      fetchBooks();
-                    } else {
-                      filteredBooks = filteredBooks.where((book) {
-                        final title = book.title.toLowerCase();
-                        final author = book.author.toLowerCase();
-                        final category = book.category.toLowerCase();
-                        final search = value.toLowerCase();
-                        return title.contains(search) ||
-                            author.contains(search) ||
-                            category.contains(search);
-                      }).toList();
-                    }
-                  });
-                },
+                child: TextField(
+                  controller: searchController,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 14.sp,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Search by title, author, or category...',
+                    hintStyle: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 14.sp,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: AppColors.primaryColor,
+                      size: 20.r,
+                    ),
+                    suffixIcon: searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(
+                              Icons.clear,
+                              color: Colors.grey[400],
+                              size: 20.r,
+                            ),
+                            onPressed: () {
+                              searchController.clear();
+                              setState(() {
+                                filteredBooks = books;
+                              });
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      if (value.isEmpty) {
+                        filteredBooks = books;
+                      } else {
+                        final lowercaseQuery = value.toLowerCase();
+                        filteredBooks = books.where((book) {
+                          return book.title
+                                  .toLowerCase()
+                                  .contains(lowercaseQuery) ||
+                              book.author
+                                  .toLowerCase()
+                                  .contains(lowercaseQuery) ||
+                              book.category
+                                  .toLowerCase()
+                                  .contains(lowercaseQuery);
+                        }).toList();
+                      }
+                    });
+                  },
+                ),
               ),
             ),
             Expanded(
